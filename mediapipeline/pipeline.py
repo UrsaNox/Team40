@@ -2,6 +2,10 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
+from collections import deque
+
+SEQUENCE_LENGTH = 30  # can be 20–40
+sequence = deque(maxlen=SEQUENCE_LENGTH)
 mp_holistic = mp.solutions.holistic
 
 holistic = mp_holistic.Holistic(
@@ -15,17 +19,17 @@ recording = False
 sequence = []   # stores frames
 
 def extract_keypoints(results):
-    pose = [(lm.x, lm.y, lm.z) for lm in results.pose_landmarks.landmark] if results.pose_landmarks else []
-    lh = [(lm.x, lm.y, lm.z) for lm in results.left_hand_landmarks.landmark] if results.left_hand_landmarks else []
-    rh = [(lm.x, lm.y, lm.z) for lm in results.right_hand_landmarks.landmark] if results.right_hand_landmarks else []
-    face = [(lm.x, lm.y, lm.z) for lm in results.face_landmarks.landmark] if results.face_landmarks else []
+    import numpy as np
 
-    return {
-        "pose": pose,
-        "left_hand": lh,
-        "right_hand": rh,
-        "face": face
-    }
+    pose = np.array([(lm.x, lm.y, lm.z) for lm in results.pose_landmarks.landmark]).flatten() if results.pose_landmarks else np.zeros(33*3)
+    
+    lh = np.array([(lm.x, lm.y, lm.z) for lm in results.left_hand_landmarks.landmark]).flatten() if results.left_hand_landmarks else np.zeros(21*3)
+    
+    rh = np.array([(lm.x, lm.y, lm.z) for lm in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
+    
+    face = np.array([(lm.x, lm.y, lm.z) for lm in results.face_landmarks.landmark]).flatten() if results.face_landmarks else np.zeros(468*3)
+
+    return np.concatenate([pose, lh, rh, face])
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -37,27 +41,52 @@ while cap.isOpened():
 
     key = cv2.waitKey(1) & 0xFF
 
-    # 🔁 Toggle recording
     if key == ord('t'):
         recording = not recording
         print("Recording:", recording)
 
-        # 👉 ADD THIS BLOCK HERE
-        keypoints = extract_keypoints(results)
+        if recording:
+            print("Started capturing...")
 
-        print("\n=== CHECK ===")
-        print("Pose:", len(keypoints['pose']))
-        print("Left Hand:", len(keypoints['left_hand']))
-        print("Right Hand:", len(keypoints['right_hand']))
-        print("Face:", len(keypoints['face']))
+        else:
+            print(f"Stopped. Captured {len(sequence)} frames")
 
-    if not recording:
-        print(f"Captured {len(sequence)} frames")
-        sequence = []
-    # 🔴 If recording → keep extracting every frame
+            # 🔍 BUFFER INSPECTION
+            if len(sequence) > 0:
+                buffer_array = np.array(sequence)
+
+                print("\n=== BUFFER INSPECTION ===")
+                print("Buffer length:", len(sequence))
+                print("Buffer shape:", buffer_array.shape)
+
+                # Last 5 frames
+                print("\nLast 5 frames:")
+                print(buffer_array[-5:])
+
+                # First frame sample
+                print("\nFirst frame (first 10 values):")
+                print(buffer_array[0][:10])
+
+                # Last frame sample
+                print("\nLast frame (first 10 values):")
+                print(buffer_array[-1][:10])
+
+                # Non-zero check
+                print("\nNon-zero values (last frame):", np.count_nonzero(buffer_array[-1]))
+
+            # Reset buffer AFTER inspection
+            sequence.clear()
+
+    # 🔴 Continuous capture (sliding window)
     if recording:
         keypoints = extract_keypoints(results)
+
+        # Always append (keeps sequence consistent)
         sequence.append(keypoints)
+
+        # When buffer is full
+        if len(sequence) == SEQUENCE_LENGTH:
+            print("Sequence Ready:", np.array(sequence).shape)
 
     cv2.imshow("Camera Feed", frame)
 
