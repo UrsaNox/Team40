@@ -1,11 +1,19 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-
 from collections import deque
 
-SEQUENCE_LENGTH = 30  # can be 20–40
+# 🔧 SETTINGS
+SEQUENCE_LENGTH = 30
+
+# ✅ Sliding window buffer
 sequence = deque(maxlen=SEQUENCE_LENGTH)
+
+# 🔥 Reduced face landmarks (important points only)
+# Nose tip, chin, left eye, right eye, left mouth, right mouth
+FACE_INDICES = [1, 152, 33, 263, 61, 291]
+
+# MediaPipe setup
 mp_holistic = mp.solutions.holistic
 
 holistic = mp_holistic.Holistic(
@@ -16,21 +24,42 @@ holistic = mp_holistic.Holistic(
 cap = cv2.VideoCapture(0)
 
 recording = False
-sequence = []   # stores frames
 
+
+# 🔥 Keypoint extraction
 def extract_keypoints(results):
-    import numpy as np
 
-    pose = np.array([(lm.x, lm.y, lm.z) for lm in results.pose_landmarks.landmark]).flatten() if results.pose_landmarks else np.zeros(33*3)
-    
-    lh = np.array([(lm.x, lm.y, lm.z) for lm in results.left_hand_landmarks.landmark]).flatten() if results.left_hand_landmarks else np.zeros(21*3)
-    
-    rh = np.array([(lm.x, lm.y, lm.z) for lm in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
-    
-    face = np.array([(lm.x, lm.y, lm.z) for lm in results.face_landmarks.landmark]).flatten() if results.face_landmarks else np.zeros(468*3)
+    # Pose (33 points)
+    pose = np.array(
+        [(lm.x, lm.y, lm.z) for lm in results.pose_landmarks.landmark]
+    ).flatten() if results.pose_landmarks else np.zeros(33 * 3)
 
+    # Left hand (21 points)
+    lh = np.array(
+        [(lm.x, lm.y, lm.z) for lm in results.left_hand_landmarks.landmark]
+    ).flatten() if results.left_hand_landmarks else np.zeros(21 * 3)
+
+    # Right hand (21 points)
+    rh = np.array(
+        [(lm.x, lm.y, lm.z) for lm in results.right_hand_landmarks.landmark]
+    ).flatten() if results.right_hand_landmarks else np.zeros(21 * 3)
+
+    # 🔥 Reduced face mesh
+    if results.face_landmarks:
+        face = np.array([
+            (results.face_landmarks.landmark[i].x,
+             results.face_landmarks.landmark[i].y,
+             results.face_landmarks.landmark[i].z)
+            for i in FACE_INDICES
+        ]).flatten()
+    else:
+        face = np.zeros(len(FACE_INDICES) * 3)
+
+    # Final feature vector
     return np.concatenate([pose, lh, rh, face])
 
+
+# 🎥 MAIN LOOP
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -41,6 +70,7 @@ while cap.isOpened():
 
     key = cv2.waitKey(1) & 0xFF
 
+    # 🔁 Toggle recording
     if key == ord('t'):
         recording = not recording
         print("Recording:", recording)
@@ -71,20 +101,17 @@ while cap.isOpened():
                 print("\nLast frame (first 10 values):")
                 print(buffer_array[-1][:10])
 
-                # Non-zero check
                 print("\nNon-zero values (last frame):", np.count_nonzero(buffer_array[-1]))
 
-            # Reset buffer AFTER inspection
+            # Reset AFTER inspection
             sequence.clear()
 
     # 🔴 Continuous capture (sliding window)
     if recording:
         keypoints = extract_keypoints(results)
 
-        # Always append (keeps sequence consistent)
         sequence.append(keypoints)
 
-        # When buffer is full
         if len(sequence) == SEQUENCE_LENGTH:
             print("Sequence Ready:", np.array(sequence).shape)
 
