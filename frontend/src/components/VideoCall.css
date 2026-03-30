@@ -1,0 +1,288 @@
+.video-call {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+/* Control Panel */
+.control-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+}
+
+.id-section {
+  display: flex;
+  align-items: center;
+}
+
+.id-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.id-display label {
+  font-weight: 600;
+  color: #333;
+}
+
+.peer-id {
+  background: #f0f0f0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #667eea;
+}
+
+.copy-btn {
+  padding: 8px 12px;
+  background: #667eea;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.copy-btn:hover {
+  background: #5568d3;
+}
+
+.call-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.input-group {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.peer-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.peer-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.call-btn {
+  padding: 10px 20px;
+  background: #667eea;
+  color: white;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.call-btn:hover:not(:disabled) {
+  background: #5568d3;
+}
+
+.call-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.warning {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.status.error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status.neutral {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.disconnect-btn {
+  padding: 10px 20px;
+  background: #f44336;
+  color: white;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.disconnect-btn:hover {
+  background: #d32f2f;
+}
+
+/* Video Grid */
+.video-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  flex: 1;
+}
+
+.video-container {
+  position: relative;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.video-label {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 10;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Translation Panel */
+.translation-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.translation-panel h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #333;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 8px;
+}
+
+.signs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sign-badge {
+  background: #667eea;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.empty {
+  color: #999;
+  font-size: 14px;
+  margin: 0;
+}
+
+.translation-text {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  min-height: 40px;
+  line-height: 1.5;
+  padding: 8px 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .control-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .translation-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .video-call {
+    gap: 12px;
+  }
+
+  .control-panel {
+    padding: 12px;
+  }
+
+  .video-grid {
+    gap: 12px;
+  }
+
+  .translation-panel {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .call-section {
+    flex-direction: column;
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+}
